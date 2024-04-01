@@ -145,7 +145,7 @@ def road_overlay_stream():
             final = cv2.resize(added_overlay, (400, 400))
 
         else:
-            added_overlay = cv2.add(cropped_img, cv2.imread(".straight.jpg"))
+            added_overlay = cv2.add(cropped_img, cv2.imread("straight.jpg"))
             final = cv2.resize(added_overlay, (400, 400))
 
         yield ret, final
