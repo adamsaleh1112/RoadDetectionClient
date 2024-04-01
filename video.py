@@ -125,12 +125,12 @@ def road_overlay_stream():
 
             print(turn_list)
 
-            with_turn = cv2.add(cropped_img, cv2.imread(".straight.jpg"))
+            with_turn = cv2.add(cropped_img, cv2.imread("straight.jpg"))
 
             if "l" in turn_list:
-                with_turn = cv2.add(cropped_img, cv2.imread(".left.jpg"))
+                with_turn = cv2.add(cropped_img, cv2.imread("left.jpg"))
             if "r" in turn_list:
-                with_turn = cv2.add(cropped_img, cv2.imread(".right.jpg"))
+                with_turn = cv2.add(cropped_img, cv2.imread("right.jpg"))
 
             # UN-PERSPECTIVE TRANSFORM
             matrix_reverse = cv2.getPerspectiveTransform(pts2, pts1)
