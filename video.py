@@ -1,9 +1,9 @@
-import numpy as np
-import cv2
+import numpy as np # importing numpy a library that allows large data collection and manipulation
+import cv2 # importing open CV, a computer vision library
 
-vid = cv2.VideoCapture("Road.mov")
-turns = []
-turns_list = []
+vid = cv2.VideoCapture("Road.mov") # setting the video as Road.mov
+turns = [] # list for storing left right values
+turns_list = [] # slicing turn list
 
 def road_overlay_stream():
 
@@ -12,15 +12,15 @@ def road_overlay_stream():
     while (True):
         turn_list = turns[-250:]  # last 250 values of turns
 
-        ret, img = vid.read()
+        ret, img = vid.read() # reading the video
 
         # CROPPING IMAGE
         cropped_img = img[840:1920, 0:1080]
         cropped_for_haar = img[840:1520, 270:810]
 
         # MAKING YELLOW BRIGHTER
-        lowyellow = np.array([50, 100, 150])
-        lightyellow = np.array([120, 215, 240])
+        lowyellow = np.array([50, 100, 150]) # low yellow RGB threshold
+        lightyellow = np.array([120, 215, 240]) # high yellow RGB threshold
         yellow = cv2.inRange(img, lowyellow, lightyellow)
 
         # HIGHLIGHTING YELLOW
@@ -44,9 +44,9 @@ def road_overlay_stream():
         # CRUDE LINE DETECTION
         lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi / 180, threshold=30, minLineLength=5, maxLineGap=300)
 
-        if lines is not None:
+        if lines is not None: # if no lines detected
 
-            right_lines = []
+            right_lines = [] # lists for data storage 
             left_lines = []
             slopes_left = []
             slopes_right = []
@@ -61,17 +61,17 @@ def road_overlay_stream():
                 abs_slope = abs(slope) + 0.01  # +.01 to prevent slope from being inf
                 slope_degrees = np.rad2deg(np.arctan(slope))
 
-                if slope_degrees > 75 or slope_degrees < -75:
+                if slope_degrees > 75 or slope_degrees < -75: # filtering lines that are not remotely veritcal
                     valid_lines.append(line)
 
             for line in valid_lines:
                 x1, y1, x2, y2 = line[0]
-                if x1 > 0 and x1 < 150:
+                if x1 > 0 and x1 < 150: # filtering lines into left and right
                     left_lines.append(line)
                 if x1 > 325 and x1 < 475:
                     right_lines.append(line)
 
-            for line in right_lines:
+            for line in right_lines: # iterating through left lines, finding x and slope and appending
                 x1, y1, x2, y2 = line[0]
                 cv2.line(result, (x1, y1), (x2, y2), (0, 0, 255), 5)
                 slope = (y2 - y1) / ((x2 - x1) + 1)
@@ -79,7 +79,7 @@ def road_overlay_stream():
                 xs_right.append(x2)
                 cv2.circle(result, (int(x2), 500), 4, (255, 0, 255), 10)
 
-            for line in left_lines:
+            for line in left_lines:  # iterating through right lines, finding x and slope and appending
                 x1, y1, x2, y2 = line[0]
                 cv2.line(result, (x1, y1), (x2, y2), (255, 0, 0), 5)
                 slope = (y2 - y1) / ((x2 - x1) + 1)
@@ -87,7 +87,7 @@ def road_overlay_stream():
                 xs_left.append(x2)
                 cv2.circle(result, (int(x2), 500), 4, (255, 0, 255), 10)
 
-            avg_slope_left = sum(slopes_left) / (len(slopes_left) + 0.001)
+            avg_slope_left = sum(slopes_left) / (len(slopes_left) + 0.001) # getting average slope and x of left and right lines 
             avg_slope_right = sum(slopes_right) / (len(slopes_right) + 0.001)
             avg_x_left = sum(xs_left) / (len(xs_left) + .001)
             avg_x_right = sum(xs_right) / (len(xs_right) + .001)
@@ -108,12 +108,6 @@ def road_overlay_stream():
 
             cv2.line(result_for_adding, (int(midline_x1), int(midline_y1)), (int(midline_x2), int(midline_y2)),
                      (0, 0, 255), 15)
-
-            # cv2.circle(result_for_adding, (int(midline_x1), 500), 5, (255,255,255), 5)
-            # cv2.line(result_for_adding, (180, 0), (180, 640), (255, 0, 255), 2)
-            # cv2.line(result_for_adding, (100, 0), (100, 640), (255, 0, 255), 2)
-            # cv2.line(result_for_adding, (380, 0), (380, 640), (0, 255, 255), 2)
-            # cv2.line(result_for_adding, (300, 0), (300, 640), (0, 255, 255), 2)
 
             # TURN PREDICTION
             if midline_x1 < 180 and midline_x1 > 100:
@@ -140,7 +134,7 @@ def road_overlay_stream():
             cropped_result_reverse = result_reverse[840:1920, 0:1080]
 
             # ADDING IMAGES
-            added_overlay = cv2.add(with_turn, cropped_result_reverse)
+            added_overlay = cv2.add(with_turn, cropped_result_reverse) # adding turn signal image with video  
             gray_added_images = cv2.cvtColor(added_overlay, cv2.COLOR_BGR2GRAY)
             final = cv2.resize(added_overlay, (400, 400))
 
